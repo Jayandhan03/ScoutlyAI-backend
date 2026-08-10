@@ -81,6 +81,14 @@ def briefings_collection() -> Collection:
     return get_db()["briefings"]
 
 
+def notification_logs_collection() -> Collection:
+    """In-app notification history — one doc per push notification sent
+    (briefing-ready or test), regardless of FCM delivery success. Read/mutated
+    (mark-read) by the Next.js app's bell dropdown. Mirrored on the frontend
+    by models/NotificationLog.ts. See notification_log_service.py."""
+    return get_db()["notificationlogs"]
+
+
 def get_gridfs() -> gridfs.GridFS:
     """GridFS bucket holding audio that's waiting on a WhatsApp button-tap
     confirmation (see whatsapp_service.queue_whatsapp_delivery)."""

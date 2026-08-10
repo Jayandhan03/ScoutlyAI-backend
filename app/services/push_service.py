@@ -14,6 +14,7 @@ from firebase_admin import credentials, messaging
 
 from app.core.config import settings
 from app.services.db_service import push_subscriptions_collection
+from app.services.notification_log_service import record_notification
 
 logger = logging.getLogger(__name__)
 
@@ -63,16 +64,23 @@ def send_push_for_briefing(*, email: str, agent_name: str, label: str, briefing_
     """Notify every device registered for this email that a new briefing is
     ready. Never raises on a partial/total send failure — the caller treats
     this as best-effort and must not let it block the actual delivery."""
-    result = _send_to_active_devices(
-        email=email,
-        title=agent_name,
-        body=f"New briefing: {label}",
-        data={"agentId": str(agent_id), "briefingId": str(briefing_id), "click_action": "/dashboard"},
-    )
+    title = agent_name
+    body = f"New briefing: {label}"
+    data = {"agentId": str(agent_id), "briefingId": str(briefing_id), "click_action": "/dashboard"}
+
+    result = _send_to_active_devices(email=email, title=title, body=body, data=data)
     logger.info(
         "Sent briefing push to %s: %d succeeded, %d failed.",
         email, result["sent"], result.get("failed", 0),
     )
+
+    # Log unconditionally — the in-app inbox should reflect that a briefing
+    # notification happened even if FCM delivery failed or found no devices.
+    try:
+        record_notification(email=email, title=title, body=body, notif_type="briefing", data=data)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Failed to record notification log for %s: %s", email, exc)
+
     return result
 
 
@@ -87,11 +95,16 @@ def send_test_push(email: str) -> dict:
     if not has_active:
         raise ValueError("No devices have in-app notifications enabled for this account.")
 
-    result = _send_to_active_devices(
-        email=email,
-        title="Leora",
-        body="✅ Test successful — in-app notifications are working.",
-        data={"click_action": "/dashboard"},
-    )
+    title = "Leora"
+    body = "✅ Test successful — in-app notifications are working."
+    data = {"click_action": "/dashboard"}
+
+    result = _send_to_active_devices(email=email, title=title, body=body, data=data)
     logger.info("Sent test push to %s: %d succeeded, %d failed.", email, result["sent"], result.get("failed", 0))
+
+    try:
+        record_notification(email=email, title=title, body=body, notif_type="test", data=data)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Failed to record notification log for %s: %s", email, exc)
+
     return result
