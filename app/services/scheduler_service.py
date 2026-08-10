@@ -165,7 +165,7 @@ def deliver_for_user(pref: dict) -> dict:
     news_data = fetch_news(
         query=query,
         limit=limit,
-        time_published="1d",
+        time_published=pref.get("dataWindow") or "1d",
         country=_country_for(pref),
     )
     articles = news_data.get("data", []) if news_data else []
@@ -212,7 +212,7 @@ def deliver_for_agent(agent: dict) -> dict:
     news_data = fetch_news(
         query=query,
         limit=limit,
-        time_published="1d",
+        time_published=agent.get("dataWindow") or "1d",
         country=_country_for(agent),
     )
     articles = news_data.get("data", []) if news_data else []

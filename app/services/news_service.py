@@ -24,7 +24,7 @@ def fetch_news(
     Args:
         query: Search topic (e.g. "AI", "Tesla", "Football").
         limit: Number of articles to return.
-        time_published: Time filter — anytime | past_hour | past_day | past_week.
+        time_published: Time filter — anytime | 1h | 1d | 7d | 1y.
         country: ISO country code.
         lang: Language code.
 
