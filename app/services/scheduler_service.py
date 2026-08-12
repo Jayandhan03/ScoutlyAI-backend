@@ -55,11 +55,21 @@ DEFAULT_INTERVAL_MINUTES = 1440  # daily fallback
 # ── Query building ───────────────────────────────────────────────
 
 def _build_query(pref: dict) -> str:
-    topics = pref.get("topics") or []
-    keywords = pref.get("keywords") or []
-    terms = [t for t in (list(topics) + list(keywords)) if t]
-    if terms:
-        return " ".join(terms)
+    """
+    Build the RapidAPI search query. The API matches a multi-word query as an
+    AND of every word, so jamming the topic *and* every keyword into one
+    string over-constrains the search and reliably returns zero articles
+    (confirmed live: the topic alone returns results, topic+keywords doesn't).
+    Topics are themselves full descriptive phrases, so use those alone when
+    present; only fall back to keywords (a few, not all) when there's no
+    topic to search on.
+    """
+    topics = [t for t in (pref.get("topics") or []) if t]
+    if topics:
+        return " ".join(topics)
+    keywords = [k for k in (pref.get("keywords") or []) if k]
+    if keywords:
+        return " ".join(keywords[:3])
     return (pref.get("summary") or "top news").strip()
 
 
