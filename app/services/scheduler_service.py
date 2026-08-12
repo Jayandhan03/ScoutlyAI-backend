@@ -357,6 +357,11 @@ def compute_next_run_at(schedule: dict, now: datetime | None = None) -> datetime
     try:
         tz = ZoneInfo(schedule.get("timezone") or "UTC")
     except Exception:
+        logger.error(
+            "ZoneInfo('%s') failed to resolve — falling back to UTC, which "
+            "will misfire non-UTC schedules. Is the 'tzdata' package installed?",
+            schedule.get("timezone"),
+        )
         tz = ZoneInfo("UTC")
 
     times = schedule.get("times") or ["09:00"]

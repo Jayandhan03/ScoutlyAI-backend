@@ -14,6 +14,9 @@ edge-tts
 # ── HTTP Client ──
 requests
 
+# ── Article text extraction (test.py) ──
+trafilatura
+
 # ── File Upload Support ──
 python-multipart
 
@@ -22,6 +25,11 @@ pymongo[srv]
 
 # ── Scheduler ──
 apscheduler
+
+# ── IANA timezone data (python:slim base images ship no system tzdata,
+# so zoneinfo.ZoneInfo() on any real zone raises ZoneInfoNotFoundError
+# and silently falls back to UTC wherever that's caught) ──
+tzdata
 
 # ── Push notifications ──
 firebase-admin
